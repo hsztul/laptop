@@ -1,252 +1,133 @@
-Laptop
-======
+# Mac Mini Server Setup
 
-Laptop is a script to set up a macOS laptop for web and mobile development.
+A script to set up a macOS machine for running [Moltbot](https://github.com/VoltAgent/moltbot) and other automation services.
 
-It can be run multiple times on the same machine safely.
-It installs, upgrades, or skips packages
-based on what is already installed on the machine.
+Forked from [thoughtbot/laptop](https://github.com/thoughtbot/laptop), optimized for headless/server use.
 
-Requirements
-------------
+## What This Fork Changes
 
-We support:
+| Original (thoughtbot) | This Fork |
+|-----------------------|-----------|
+| Heroku CLI + Parity | Removed (not needed) |
+| PostgreSQL + Redis | Optional (uncomment if needed) |
+| Ruby via asdf | Optional (uncomment if needed) |
+| ImageMagick, Poppler | Optional (uncomment if needed) |
+| — | **Added:** `gog` CLI for Google integration |
+| — | **Added:** `htop`, `ripgrep`, `fd`, `jq`, `yq` |
+| — | **Added:** `rclone` for backups |
+| — | **Added:** Server-optimized macOS settings |
 
-* macOS Sequoia (15.x) on Apple Silicon and Intel
-* macOS Sonoma (14.x) on Apple Silicon and Intel
-* macOS Ventura (13.x) on Apple Silicon and Intel
-* macOS Monterey (12.x) on Apple Silicon and Intel
+## Requirements
 
-Older versions may work but aren't regularly tested.
-Bug reports for older versions are welcome.
+- macOS Sequoia (15.x), Sonoma (14.x), Ventura (13.x), or Monterey (12.x)
+- Apple Silicon or Intel
 
-Install
--------
+## Install
 
-Download the script:
-
-```sh
-curl --remote-name https://raw.githubusercontent.com/thoughtbot/laptop/main/mac
-```
-
-Review the script (avoid running scripts you haven't read!):
+### 1. Download and run the script
 
 ```sh
-less mac
-```
-
-Execute the downloaded script:
-
-```sh
+curl --remote-name https://raw.githubusercontent.com/hsztul/laptop/master/mac
 sh mac 2>&1 | tee ~/laptop.log
 ```
 
-Optionally, review the log:
+### 2. Set up your laptop.local (optional but recommended)
 
 ```sh
-less ~/laptop.log
+curl --remote-name https://raw.githubusercontent.com/hsztul/laptop/master/laptop.local.example
+mv laptop.local.example ~/.laptop.local
+# Edit ~/.laptop.local to customize, then re-run:
+sh mac 2>&1 | tee ~/laptop.log
 ```
 
-Optionally, [install thoughtbot/dotfiles][dotfiles].
+## What It Sets Up
 
-[dotfiles]: https://github.com/thoughtbot/dotfiles#install
+### Core Tools
+- [Homebrew](http://brew.sh/) — Package manager
+- [Git](https://git-scm.com/) — Version control
+- [GitHub CLI](https://cli.github.com/) — GitHub API from terminal
+- [Zsh](http://www.zsh.org/) — Shell
+- [fzf](https://github.com/junegunn/fzf) — Fuzzy finder
+- [tmux](http://tmux.github.io/) — Terminal multiplexer
 
-Debugging
----------
+### Search & Navigation
+- [ripgrep](https://github.com/BurntSushi/ripgrep) — Fast search
+- [fd](https://github.com/sharkdp/fd) — Fast find
+- [The Silver Searcher](https://github.com/ggreer/the_silver_searcher) — Code search
+- [tree](http://mama.indstate.edu/users/ice/tree/) — Directory listing
 
-Your last Laptop run will be saved to `~/laptop.log`.
-Read through it to see if you can debug the issue yourself.
-If not, copy the lines where the script failed into a
-[new GitHub Issue](https://github.com/thoughtbot/laptop/issues/new) for us.
-Or, attach the whole log file as an attachment.
+### Development
+- [asdf](https://github.com/asdf-vm/asdf) — Version manager
+- [Node.js](http://nodejs.org/) — Required for Moltbot
+- [jq](https://stedolan.github.io/jq/) / [yq](https://github.com/mikefarah/yq) — JSON/YAML processing
+- [Watchman](https://facebook.github.io/watchman/) — File watching
 
-What it sets up
----------------
+### Moltbot-Specific
+- [gog](https://github.com/steipete/gog) — Google services CLI (Gmail, Calendar)
+- [Rosetta 2](https://developer.apple.com/documentation/apple-silicon/about-the-rosetta-translation-environment) — Apple Silicon compatibility
 
-macOS tools:
+### Server Tools
+- [htop](https://htop.dev/) — Process monitor
+- [rclone](https://rclone.org/) — Cloud storage sync
 
-* [Homebrew] for managing operating system libraries.
+## laptop.local.example
 
-[Homebrew]: http://brew.sh/
+The included `laptop.local.example` adds:
 
-Unix tools:
+**Apps:**
+- 1Password + CLI
+- iTerm2, Warp
+- Raycast
+- Tailscale (critical for secure Moltbot access)
+- Cursor, Claude, ChatGPT
+- Obsidian
+- Starship prompt
 
-* [fzf][] for better command history searching
-* [Universal Ctags] for indexing files for vim tab completion
-* [Git] for version control
-* [OpenSSL] for Transport Layer Security (TLS)
-* [RCM] for managing company and personal dotfiles
-* [The Silver Searcher] for finding things in files
-* [Tmux] for saving project state and switching between projects
-* [Watchman] for watching for filesystem events
-* [Zsh] as your shell
+**Server Settings:**
+- Disable sleep on power adapter
+- Auto-restart on freeze/power failure
+- Moltbot security hardening (mDNS disabled)
+- Useful shell aliases
 
-[fzf]: https://github.com/junegunn/fzf
-[Universal Ctags]: https://ctags.io/
-[Git]: https://git-scm.com/
-[OpenSSL]: https://www.openssl.org/
-[RCM]: https://github.com/thoughtbot/rcm
-[The Silver Searcher]: https://github.com/ggreer/the_silver_searcher
-[Tmux]: http://tmux.github.io/
-[Watchman]: https://facebook.github.io/watchman/
-[Zsh]: http://www.zsh.org/
+## Post-Install: Moltbot Setup
 
-Heroku tools:
-
-* [Heroku CLI] and [Parity] for interacting with the Heroku API
-
-[Heroku CLI]: https://devcenter.heroku.com/articles/heroku-cli
-[Parity]: https://github.com/thoughtbot/parity
-
-GitHub tools:
-
-* [GitHub CLI] for interacting with the GitHub API
-
-[GitHub CLI]: https://cli.github.com/
-
-Image tools:
-
-* [ImageMagick] for cropping and resizing images
-
-Programming languages, package managers, and configuration:
-
-* [asdf-vm] for managing programming language versions
-* [Bundler] for managing Ruby libraries
-* [Node.js] and [npm], for running apps and installing JavaScript packages
-* [Ruby] stable for writing general-purpose code
-* [Yarn] for managing JavaScript packages
-* [Rosetta 2] for running tools that are not supported in Apple silicon processors
-
-[Bundler]: http://bundler.io/
-[ImageMagick]: http://www.imagemagick.org/
-[Node.js]: http://nodejs.org/
-[npm]: https://www.npmjs.org/
-[asdf-vm]: https://github.com/asdf-vm/asdf
-[Ruby]: https://www.ruby-lang.org/en/
-[Yarn]: https://yarnpkg.com/en/
-[Rosetta 2]: https://developer.apple.com/documentation/apple-silicon/about-the-rosetta-translation-environment
-
-Databases:
-
-* [Postgres] for storing relational data
-* [Redis] for storing key-value data
-
-[Postgres]: http://www.postgresql.org/
-[Redis]: http://redis.io/
-
-It should take less than 15 minutes to install (depends on your machine).
-
-Customize in `~/.laptop.local`
-------------------------------
-
-Your `~/.laptop.local` is run at the end of the Laptop script.
-Put your customizations there.
-For example:
+After running the laptop script:
 
 ```sh
-#!/bin/sh
+# 1. Install Moltbot
+npm install -g moltbot@latest
 
-brew bundle --file=- <<EOF
-brew "Caskroom/cask/dockertoolbox"
-brew "go"
-brew "ngrok"
-brew "watch"
-EOF
+# 2. Run onboarding wizard
+moltbot onboard
 
-default_docker_machine() {
-  docker-machine ls | grep -Fq "default"
-}
+# 3. Set up Google integration
+gog auth credentials ~/path/to/client_secret.json
+gog auth add your@email.com
 
-if ! default_docker_machine; then
-  docker-machine create --driver virtualbox default
-fi
+# 4. Configure Tailscale
+open /Applications/Tailscale.app
+tailscale up
 
-default_docker_machine_running() {
-  default_docker_machine | grep -Fq "Running"
-}
-
-if ! default_docker_machine_running; then
-  docker-machine start default
-fi
-
-fancy_echo "Cleaning up old Homebrew formulae ..."
-brew cleanup
-
-if [ -r "$HOME/.rcrc" ]; then
-  fancy_echo "Updating dotfiles ..."
-  rcup
-fi
+# 5. Verify security
+moltbot security audit --deep
 ```
 
-Write your customizations such that they can be run safely more than once.
-See the `mac` script for examples.
+See [moltbot-ideas.md](https://github.com/hsztul/laptop/blob/master/docs/moltbot-setup.md) for the full secure setup guide.
 
-Laptop functions such as `fancy_echo` and
-`gem_install_or_update`
-can be used in your `~/.laptop.local`.
+## Customization
 
-See the [wiki](https://github.com/thoughtbot/laptop/wiki)
-for more customization examples.
-
-Contributing
-------------
-
-Thank you, [contributors]!
-
-[contributors]: https://github.com/thoughtbot/laptop/graphs/contributors
-
-By participating in this project,
-you agree to abide by the thoughtbot [code of conduct].
-
-[code of conduct]: https://thoughtbot.com/open-source-code-of-conduct
-
-Edit the `mac` file.
-Document in the `README.md` file.
-Update the `CHANGELOG`.
-Follow shell style guidelines by using [ShellCheck] and [ALE] or deprecated [Syntastic].
+Edit `~/.laptop.local` to add your own packages. Functions like `fancy_echo` and `append_to_zshrc` are available.
 
 ```sh
-brew install shellcheck
+# Example: Add Python via asdf
+add_or_update_asdf_plugin "python" "https://github.com/asdf-community/asdf-python.git"
+install_asdf_language "python"
 ```
 
-[ShellCheck]: http://www.shellcheck.net/about.html
-[Syntastic]: https://github.com/scrooloose/syntastic
-[ALE]: https://github.com/dense-analysis/ale
+## Debugging
 
+Check `~/laptop.log` for errors. [Open an issue](https://github.com/hsztul/laptop/issues) if needed.
 
-### Testing your changes
+## Credits
 
-Test your changes by running the script on a fresh install of macOS.
-You can use the free and open source emulator [UTM].
-
-Tip: Make a fresh virtual machine with the installation of macOS completed and
-your user created and first launch complete. Then duplicate that machine to test
-the script each time on a fresh install that's ready to go.
-
-[UTM]: https://mac.getutm.app
-
-License
--------
-
-Copyright © 2011 thoughtbot, inc.
-It is free software,
-and may be redistributed under the terms specified in the [LICENSE] file.
-
-[LICENSE]: LICENSE
-
-<!-- START /templates/footer.md -->
-## About thoughtbot
-
-![thoughtbot](https://thoughtbot.com/thoughtbot-logo-for-readmes.svg)
-
-This repo is maintained and funded by thoughtbot, inc.
-The names and logos for thoughtbot are trademarks of thoughtbot, inc.
-
-We love open source software!
-See [our other projects][community].
-We are [available for hire][hire].
-
-[community]: https://thoughtbot.com/community?utm_source=github
-[hire]: https://thoughtbot.com/hire-us?utm_source=github
-
-<!-- END /templates/footer.md -->
+Based on [thoughtbot/laptop](https://github.com/thoughtbot/laptop). Original license applies.

@@ -1,0 +1,91 @@
+#!/bin/sh
+# ~/.laptop.local - Personal customizations for Mac Mini server
+# Copy this to ~/.laptop.local before running the laptop script
+
+fancy_echo "Running ~/.laptop.local customizations..."
+
+# ============================================
+# ESSENTIAL APPS
+# ============================================
+brew install --cask 1password
+brew install --cask 1password-cli
+brew install --cask iterm2
+brew install --cask warp
+brew install --cask raycast
+brew install --cask tailscale      # Critical for secure Moltbot access
+
+# ============================================
+# AI & DEVELOPMENT
+# ============================================
+brew install --cask cursor
+brew install --cask claude         # Claude desktop app
+brew install claude-code           # Claude Code CLI (note: formula, not cask)
+brew install --cask chatgpt
+
+# ============================================
+# PRODUCTIVITY
+# ============================================
+brew install --cask obsidian       # For Obsidian vault integration
+brew install --cask hiddenbar
+brew install --cask spotify
+brew install starship              # Modern shell prompt
+
+# ============================================
+# COMMUNICATION (optional for server)
+# ============================================
+# Uncomment if needed on this machine
+# brew install --cask slack
+# brew install --cask zoom
+# brew install --cask microsoft-office
+
+# ============================================
+# UTILITIES (optional)
+# ============================================
+# brew install --cask balenaetcher  # Only if flashing SD cards/USBs
+# brew install --cask dia           # Only if creating diagrams
+
+# ============================================
+# MOLTBOT SECURITY HARDENING
+# ============================================
+fancy_echo "Configuring Moltbot security settings..."
+
+# Disable mDNS broadcasting (prevents network discovery)
+append_to_zshrc 'export CLAWDBOT_DISABLE_BONJOUR=1'
+
+# ============================================
+# SHELL CONFIGURATION
+# ============================================
+fancy_echo "Configuring shell..."
+
+# Initialize starship prompt
+append_to_zshrc 'eval "$(starship init zsh)"'
+
+# Useful aliases for Moltbot management
+append_to_zshrc 'alias mb="moltbot"'
+append_to_zshrc 'alias mbs="moltbot status --all"'
+append_to_zshrc 'alias mbl="tail -f ~/.moltbot/logs/gateway.log"'
+
+# ============================================
+# MACOS PREFERENCES FOR SERVER
+# ============================================
+fancy_echo "Configuring macOS for server use..."
+
+# Disable sleep when on power adapter
+sudo pmset -c sleep 0
+
+# Disable display sleep when on power adapter
+sudo pmset -c displaysleep 0
+
+# Restart automatically if the computer freezes
+sudo systemsetup -setrestartfreeze on 2>/dev/null || true
+
+# Restart automatically after power failure
+sudo pmset -c autorestart 1
+
+# ============================================
+# CLEANUP
+# ============================================
+fancy_echo "Cleaning up old Homebrew formulae..."
+brew cleanup
+
+fancy_echo "laptop.local complete!"

@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# Welcome to the thoughtbot laptop script!
-# Be prepared to turn your laptop (or desktop, no haters here)
-# into an awesome development machine.
+# Mac Mini Server Setup Script
+# Forked from thoughtbot/laptop, optimized for Moltbot and automation servers.
+# https://github.com/hsztul/laptop
 
 # shellcheck disable=SC3043
 
@@ -79,28 +79,15 @@ case "$SHELL" in
     ;;
 esac
 
-# checks architecture
-if [ "$(uname -m)" = "arm64" ]
-  then
-  # checks if Rosetta is already installed
-  if ! pkgutil --pkg-info=com.apple.pkg.RosettaUpdateAuto > /dev/null 2>&1
-  then
-    echo "Installing Rosetta"
-    # Installs Rosetta2
+# Install Rosetta 2 for Apple Silicon
+if [ "$(uname -m)" = "arm64" ]; then
+  if ! pkgutil --pkg-info=com.apple.pkg.RosettaUpdateAuto > /dev/null 2>&1; then
+    fancy_echo "Installing Rosetta 2..."
     softwareupdate --install-rosetta --agree-to-license
   else
-    echo "Rosetta is installed"
+    fancy_echo "Rosetta 2 is already installed"
   fi
 fi
-
-
-gem_install_or_update() {
-  if gem list "$1" --installed > /dev/null; then
-    gem update "$@"
-  else
-    gem install "$@"
-  fi
-}
 
 if ! command -v brew >/dev/null; then
   fancy_echo "Installing Homebrew ..."
@@ -120,56 +107,72 @@ fi
 fancy_echo "Updating Homebrew formulae ..."
 brew update --force # https://github.com/Homebrew/brew/issues/1151
 brew bundle --file=- <<EOF
-tap "thoughtbot/formulae"
-tap "heroku/brew"
+# ============================================
+# TAPS
+# ============================================
+tap "steipete/tap"
 
-# Unix
-brew "universal-ctags"
-brew "fzf"
+# ============================================
+# UNIX ESSENTIALS
+# ============================================
 brew "git"
 brew "openssl"
-brew "rcm"
-brew "reattach-to-user-namespace"
-brew "the_silver_searcher"
+brew "coreutils"
+brew "zsh"
+brew "fzf"
 brew "tmux"
 brew "vim"
-brew "watchman"
-brew "zsh"
+brew "reattach-to-user-namespace"
 
-# Heroku
-brew "heroku/brew/heroku"
-brew "parity"
+# ============================================
+# SEARCH & NAVIGATION
+# ============================================
+brew "the_silver_searcher"
+brew "ripgrep"
+brew "fd"
+brew "tree"
 
-# GitHub
+# ============================================
+# DEVELOPMENT TOOLS
+# ============================================
 brew "gh"
+brew "jq"
+brew "yq"
+brew "watchman"
+brew "libyaml"
 
-# Image manipulation
-brew "imagemagick"
+# ============================================
+# MOLTBOT DEPENDENCIES
+# ============================================
+brew "steipete/tap/gog"
 
-# PDF Rendering
-brew "poppler"
+# ============================================
+# SERVER MONITORING
+# ============================================
+brew "htop"
 
-# Programming language prerequisites and package managers
-brew "libyaml" # should come after openssl
-brew "coreutils"
-brew "yarn"
-cask "gpg-suite-no-mail"
+# ============================================
+# NETWORKING & SECURITY
+# ============================================
+brew "curl"
+brew "wget"
+brew "rclone"
 
-# Databases
-brew "postgresql@14", restart_service: :changed
-brew "redis", restart_service: :changed
+# ============================================
+# OPTIONAL: Uncomment if needed
+# ============================================
+# brew "imagemagick"      # Image manipulation
+# brew "poppler"          # PDF rendering
+# brew "postgresql@16"    # Database (if Moltbot needs it)
+# brew "redis"            # Cache (if Moltbot needs it)
 EOF
-
-fancy_echo "Update heroku binary ..."
-brew unlink heroku
-brew link --force heroku
 
 fancy_echo "Configuring asdf version manager ..."
 if [ ! -d "$HOME/.asdf" ]; then
   brew install asdf
   append_to_zshrc "source $(brew --prefix asdf)/libexec/asdf.sh" 1
 else
-  brew upgrade asdf
+  brew upgrade asdf || true
 fi
 
 alias install_asdf_plugin=add_or_update_asdf_plugin
@@ -186,7 +189,8 @@ add_or_update_asdf_plugin() {
 
 # shellcheck disable=SC1091
 . "$(brew --prefix asdf)/libexec/asdf.sh"
-add_or_update_asdf_plugin "ruby" "https://github.com/asdf-vm/asdf-ruby.git"
+
+# Node.js is required for Moltbot
 add_or_update_asdf_plugin "nodejs" "https://github.com/asdf-vm/asdf-nodejs.git"
 
 install_asdf_language() {
@@ -200,17 +204,25 @@ install_asdf_language() {
   fi
 }
 
-fancy_echo "Installing latest Ruby ..."
-install_asdf_language "ruby"
-gem update --system
-number_of_cores=$(sysctl -n hw.ncpu)
-bundle config --global jobs $((number_of_cores - 1))
-
-fancy_echo "Installing latest Node ..."
+fancy_echo "Installing latest Node.js (required for Moltbot) ..."
 install_asdf_language "nodejs"
+
+# Optional: Uncomment if you need Ruby
+# add_or_update_asdf_plugin "ruby" "https://github.com/asdf-vm/asdf-ruby.git"
+# fancy_echo "Installing latest Ruby ..."
+# install_asdf_language "ruby"
+# gem update --system
+# number_of_cores=$(sysctl -n hw.ncpu)
+# bundle config --global jobs $((number_of_cores - 1))
 
 if [ -f "$HOME/.laptop.local" ]; then
   fancy_echo "Running your customizations from ~/.laptop.local ..."
   # shellcheck disable=SC1091
   . "$HOME/.laptop.local"
 fi
+
+fancy_echo "Setup complete! Next steps:"
+fancy_echo "  1. Install Moltbot: npm install -g moltbot@latest"
+fancy_echo "  2. Run onboarding: moltbot onboard"
+fancy_echo "  3. Configure Google: gog auth add your@email.com"
+fancy_echo "  4. Set up Tailscale: open /Applications/Tailscale.app"
