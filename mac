@@ -156,16 +156,20 @@ brew "htop"
 # ============================================
 brew "curl"
 brew "wget"
-brew "rclone"
 
 # ============================================
 # OPTIONAL: Uncomment if needed
+# brew "rclone"             # Cloud sync (requires Go to build, can fail)
 # ============================================
 # brew "imagemagick"      # Image manipulation
 # brew "poppler"          # PDF rendering
 # brew "postgresql@16"    # Database (if Moltbot needs it)
 # brew "redis"            # Cache (if Moltbot needs it)
 EOF
+
+# Install rclone separately (can fail due to Go build issues)
+fancy_echo "Attempting to install rclone (optional)..."
+brew install rclone || fancy_echo "Note: rclone failed to install. You can install it later or download from https://rclone.org/downloads/"
 
 fancy_echo "Configuring asdf version manager ..."
 if [ ! -d "$HOME/.asdf" ]; then
